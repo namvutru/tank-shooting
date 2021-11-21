@@ -6,6 +6,7 @@ import random
 
 # General Setup
 pygame.font.init()
+pygame.init()
 clock = pygame.time.Clock()
 pygame.display.set_caption("Tank-shooting")
 
@@ -26,11 +27,11 @@ TANK_BLUE = pygame.image.load(os.path.join("images", "tank_blue.png"))
 
 #
 # # Load Bullet Images
-RED_BULLET = pygame.image.load(os.path.join("images", "bulletred2.png"))
-# DARK_BULLET = pygame.image.load(os.path.join("images", "bulletdark2.png"))
-# GREEN_BULLET = pygame.image.load(os.path.join("images", "bulletgreen2.png"))
+RED_BULLET = pygame.image.load(os.path.join("images", "bullet_red.png"))
+# DARK_BULLET = pygame.image.load(os.path.join("images", "bullet_purple.png"))
+# GREEN_BULLET = pygame.image.load(os.path.join("images", "bullet_green.png"))
 # SAND_BULLET = pygame.image.load(os.path.join("images", "bulletsand2.png"))
-BLUE_BULLET = pygame.image.load(os.path.join("images", "bulletblue2.png"))
+BLUE_BULLET = pygame.image.load(os.path.join("images", "bullet_blue.png"))
 
 # Load Wall
 WALL = pygame.image.load(os.path.join("images", "wall.png"))
@@ -39,6 +40,11 @@ STEEL_WALL = pygame.image.load(os.path.join("images", "steel_wall.png"))
 # Chose Player Image
 PLAYER_TANK = TANK_BLUE
 PLAYER_BULLET = BLUE_BULLET
+PLAYER_LASER = []
+for i in range(1,12):
+    PLAYER_LASER.append(pygame.image.load(os.path.join("images"), "laser1.png"))
+
+
 # Chose Enemy Image
 ENEMY_TANK = TANK_RED
 ENEMY_BULLET = RED_BULLET
@@ -51,7 +57,7 @@ lives = 5
 class Player(pygame.sprite.Sprite):
     COOLDOWN = 30
 
-    def __init__(self, pox_x, pox_y, image, vel=5):
+    def __init__(self, pox_x, pox_y, image, vel=3):
         super().__init__()
         self.image = image
         self.vel = float(vel)
@@ -100,6 +106,8 @@ class Player(pygame.sprite.Sprite):
             key = pygame.key.get_pressed()
             if key[pygame.K_SPACE]:
                 bullet = Bullet(self.rect.centerx, self.rect.centery, PLAYER_BULLET, self.direction)
+                bullet_sound = pygame.mixer.Sound(os.path.join("sounds", "gun9.wav"))
+                bullet_sound.play()
                 if self.direction == 0:
                     bullet.rect.y -= self.TANK_HEIGHT / 2
                 if self.direction == 90:
@@ -111,6 +119,22 @@ class Player(pygame.sprite.Sprite):
                 player_bullet_group.add(bullet)
                 self.cool_down_counter += 1
 
+    def laser_fire(self):
+        key = pygame.key.get_pressed()
+        if key[pygame.K_x]:
+            laser = Laser(self.rect.centerx, self.rect.centery, self.direction)
+            # bullet_sound = pygame.mixer.Sound(os.path.join("sounds", "gun9.wav"))
+            # bullet_sound.play()
+            if self.direction == 0:
+                laser.rect.y -= self.TANK_HEIGHT / 2
+            if self.direction == 90:
+                laser.rect.x -= self.TANK_WIDTH / 2
+            if self.direction == 180:
+                laser.rect.y += self.TANK_HEIGHT / 2
+            if self.direction == 270:
+                laser.rect.x += self.TANK_WIDTH / 2
+            player_bullet_group.add()
+
     def cooldown(self):  # Control Fire CoolDown
         if self.cool_down_counter >= self.COOLDOWN:
             self.cool_down_counter = 0
@@ -121,6 +145,7 @@ class Player(pygame.sprite.Sprite):
         self.cooldown()
         self.move(self.vel)
         self.shot()
+        self.laser_fire()
 
 
 # Enemy Class
@@ -185,6 +210,8 @@ class Enemy(pygame.sprite.Sprite):
     def shot(self):
         if self.fire_cool_down == 0:
             bullet = Bullet(self.rect.centerx, self.rect.centery, ENEMY_BULLET, self.direction)
+            bullet_sound = pygame.mixer.Sound(os.path.join("sounds", "gun10.wav"))
+            bullet_sound.play()
             if self.direction == 0:
                 bullet.rect.y -= self.TANK_HEIGHT / 2
             if self.direction == 90:
@@ -217,7 +244,7 @@ class Enemy(pygame.sprite.Sprite):
 
 # Bullet Class
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y, image, direction, vel=8):
+    def __init__(self, pos_x, pos_y, image, direction, vel=5):
         super().__init__()
         self.direction = direction
         self.image = pygame.transform.rotate(image, direction + 90)
@@ -249,10 +276,10 @@ class Bullet(pygame.sprite.Sprite):
 
         if self in enemy_bullet_group and pygame.sprite.spritecollide(self, player_group, True):
             global lives
-            if lives >= 0:
+            if lives > 1:
                 player = Player(WIDTH / 2 - PLAYER_TANK.get_width(), HEIGHT - PLAYER_TANK.get_height(), PLAYER_TANK)
                 player_group.add(player)
-                lives -= 1
+            lives -= 1
             enemy_bullet_group.remove(self)
 
         if pygame.sprite.spritecollide(self, wall_group, True):
@@ -270,6 +297,28 @@ class Bullet(pygame.sprite.Sprite):
     def update(self):
         self.move()
         self.collide()
+
+
+# Laser Class
+class Laser(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y, direction):
+        super().__init__()
+        self.laser_sheet = PLAYER_LASER
+
+        for i in range(len(self.laser_sheet)):
+            self.laser_sheet[i] = pygame.transform.rotate(self.laser_sheet[i],direction)
+
+        self.current_image = 0
+        self.image = self.laser_sheet[self.current_image]
+
+        self.rect = self.image.get_rect()
+        self.rect.midleft = [pos_x, pos_y]
+
+    def update(self):
+        self.current_image += 1
+        if self.current_image >= len(self.laser_sheet):
+            player_laser_group.remove(self)
+        self.image = self.laser_sheet[self.current_image]
 
 
 # Wall Class
@@ -294,7 +343,7 @@ player1 = Player(WIDTH / 2 - PLAYER_TANK.get_width(), HEIGHT - PLAYER_TANK.get_h
 player_group = pygame.sprite.Group()
 player_group.add(player1)
 player_bullet_group = pygame.sprite.Group()
-
+player_laser_group = pygame.sprite.Group()
 # Set Wall
 wall_group = pygame.sprite.Group()
 for i in range(30):
@@ -335,6 +384,8 @@ while True:
     wall_group.draw(Screen)
     steel_wall_group.draw(Screen)
 
+    player_laser_group.draw(Screen)
+    player_laser_group.update()
     player_bullet_group.draw(Screen)
     player_bullet_group.update()
     player_group.draw(Screen)
@@ -344,6 +395,8 @@ while True:
     enemy_group.update()
     enemy_bullet_group.draw(Screen)
     enemy_bullet_group.update()
+
+
     main_font = pygame.font.SysFont("comicsans", 50)
     lives_label = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
     Screen.blit(lives_label, (10, 10))
