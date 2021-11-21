@@ -15,6 +15,10 @@ WIDTH = 850
 HEIGHT = 650
 Screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
+# Text on Screen
+LIVES = 5
+Score = 0
+
 # Load Background Images
 BG = pygame.image.load(os.path.join("images", "back_ground.png"))
 
@@ -91,10 +95,11 @@ def draw_map():
         print()
 
 
-#  Bullet Type - Chỉnh thuộc tính của đạn
 TYPE_BULLET = {}
+TYPE_TANK = {}
 
 
+#  Bullet Type - Chỉnh thuộc tính của đạn
 def set_bullet():
     RED_BULLET_VEL = 2
     GREEN_BULLET_VEL = 3
@@ -118,12 +123,7 @@ def set_bullet():
     }
 
 
-set_bullet()
-
 #  Tank Type - Chỉnh thuộc tính xe tank
-TYPE_TANK = {}
-
-
 def set_Tank_stats():
     VEL_RED = 1
     HEALTH_RED = 3
@@ -157,11 +157,10 @@ def set_Tank_stats():
         "health": HEALTH_BLUE
     }
 
-
+set_bullet()
 set_Tank_stats()
 
-LIVES = 5
-Score = 0
+
 
 # Chose Player Image
 
