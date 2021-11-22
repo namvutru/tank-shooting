@@ -8,172 +8,38 @@ import random
 pygame.font.init()
 pygame.init()
 clock = pygame.time.Clock()
-pygame.display.set_caption("Tank-shooting")
+pygame.display.set_caption("Tank Shooting")
 
 # Game Screen
 WIDTH = 850
 HEIGHT = 650
 Screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
+start_time = pygame.time.get_ticks()
 # Text on Screen
-LIVES = 5
+LIVES = 3
 Score = 0
 
+######################################################### Load Images ########################################
 # Load Background Images
 BG = pygame.image.load(os.path.join("images", "back_ground.png"))
 
+# Load Wall + GRASS + MAIN HOUSE
+WALL = pygame.image.load(os.path.join("images", "wall.png"))
+STEEL_WALL = pygame.image.load(os.path.join("images", "steel_wall.png"))
+GRASS = pygame.image.load(os.path.join("images", "grass1.png"))
+BASE = pygame.image.load(os.path.join("images", "vietnam.png"))
+
 #  Load Tank Images
-TANK_RED = pygame.image.load(os.path.join("images", "tank_red.png"))
-TANK_GREEN = pygame.image.load(os.path.join("images", "tank_green.png"))
-TANK_BLUE = pygame.image.load(os.path.join("images", "tank_blue.png"))
-TANK_GRAY = pygame.image.load(os.path.join("images", "tank_gray.png"))
+TANK_RED = pygame.image.load(os.path.join("images", "tank_red.png")).convert_alpha(Screen)
+TANK_GREEN = pygame.image.load(os.path.join("images", "tank_green.png")).convert_alpha(Screen)
+TANK_BLUE = pygame.image.load(os.path.join("images", "tank_blue.png")).convert_alpha(Screen)
+TANK_GRAY = pygame.image.load(os.path.join("images", "tank_gray.png")).convert_alpha(Screen)
+
 # Load Bullet Images
 RED_BULLET = pygame.image.load(os.path.join("images", "bullet_red.png"))
 GRAY_BULLET = pygame.image.load(os.path.join("images", "bullet_gray.png"))
 GREEN_BULLET = pygame.image.load(os.path.join("images", "bullet_green.png"))
 BLUE_BULLET = pygame.image.load(os.path.join("images", "bullet_blue.png"))
-
-# Load Wall + GRASS + MAIN HOUSE
-WALL = pygame.image.load(os.path.join("images", "wall.png"))
-STEEL_WALL = pygame.image.load(os.path.join("images", "steel_wall.png"))
-GRASS = pygame.image.load(os.path.join("images", "grass1.png")).convert_alpha(Screen)
-HAWK = pygame.image.load(os.path.join("images", "hawk.png"))
-
-
-def draw_map():
-    map = ['.#..#.##.##.#..#.',
-           '.#..#.##@##.#..#.',
-           '.#..#.......#..#.',
-           '......##.##......',
-           '......##.##......',
-           '@.###G......###G@',
-           '.....G##.##..GGG.',
-           '......#####..GGG.',
-           '.#..#.#####.#..#.',
-           '.#..#.##.##.#..#.',
-           '.#..#.##.##.#..#.',
-           '.#..#..###..#..#.',
-           '.......#H#.......']
-
-    map1 = ['.#..@.##.#@.#..#.',
-            '.#..@.##@##.#..#.',
-            '.#..#.......#.@#.',
-            '......##.##.@....',
-            '......##.##......',
-            '@.###...@...###.@',
-            '......##.##......',
-            '...@..###@#......',
-            '@#.@#.#####.#..#.',
-            '.#..#.##.##.#..#.',
-            '.#..#.##.##.#..#.',
-            '.#..#..###..#..#.',
-            '.......#H#.......']
-
-    for row in range(13):  # 650/50=13
-        for col in range(len(map[row])):  # 850/50=17
-            if map[row][col] == '#':
-                wall = Wall(WALL.get_width() * col + WALL.get_width() / 2,
-                            WALL.get_height() * row + WALL.get_width() / 2, WALL)
-                wall_group.add(wall)
-            elif map[row][col] == '@':
-                stone = Wall(STEEL_WALL.get_width() * col + STEEL_WALL.get_width() / 2,
-                             STEEL_WALL.get_height() * row + STEEL_WALL.get_width() / 2, STEEL_WALL)
-                steel_wall_group.add(stone)
-            elif map[row][col] == 'G':
-                grass = Wall(GRASS.get_width() * col + WALL.get_width() / 2,
-                             GRASS.get_height() * row + WALL.get_width() / 2, GRASS)
-                grass_group.add(grass)
-            elif map[row][col] == 'H':
-                hawk = Wall(HAWK.get_width() * col + WALL.get_width() / 2,
-                            HAWK.get_height() * row + WALL.get_width() / 2, HAWK)
-                hawk_group.add(hawk)
-
-    # print(len(map[0][1]))
-    for row in range(13):  # 850/50=17
-        for col in range(len(map[row])):
-            print(map[row][col], sep='', end='')
-        print()
-
-
-TYPE_BULLET = {}
-TYPE_TANK = {}
-
-
-#  Bullet Type - Chỉnh thuộc tính của đạn
-def set_bullet():
-    RED_BULLET_VEL = 2
-    GREEN_BULLET_VEL = 3
-    GRAY_BULLET_VEL = 4
-    BLUE_BULLET_VEL = 4
-    TYPE_BULLET["red"] = {
-        "image": RED_BULLET,
-        "vel": RED_BULLET_VEL
-    }
-    TYPE_BULLET["green"] = {
-        "image": GREEN_BULLET,
-        "vel": GREEN_BULLET_VEL
-    }
-    TYPE_BULLET["gray"] = {
-        "image": GRAY_BULLET,
-        "vel": GRAY_BULLET_VEL
-    }
-    TYPE_BULLET["blue"] = {
-        "image": BLUE_BULLET,
-        "vel": BLUE_BULLET_VEL
-    }
-
-
-#  Tank Type - Chỉnh thuộc tính xe tank
-def set_Tank_stats():
-    VEL_RED = 1
-    HEALTH_RED = 3
-
-    VEL_GREEN = 2
-    HEALTH_GREEN = 2
-
-    VEL_GRAY = 3
-    HEALTH_GRAY = 1
-
-    VEL_BLUE = 2.5
-    HEALTH_BLUE = 2
-    TYPE_TANK["red"] = {
-        "image": TANK_RED,
-        "vel": VEL_RED,
-        "health": HEALTH_RED
-    }
-    TYPE_TANK["green"] = {
-        "image": TANK_GREEN,
-        "vel": VEL_GREEN,
-        "health": HEALTH_GREEN
-    }
-    TYPE_TANK["gray"] = {
-        "image": TANK_GRAY,
-        "vel": VEL_GRAY,
-        "health": HEALTH_GRAY
-    }
-    TYPE_TANK["blue"] = {
-        "image": TANK_BLUE,
-        "vel": VEL_BLUE,
-        "health": HEALTH_BLUE
-    }
-
-set_bullet()
-set_Tank_stats()
-
-
-
-# Chose Player Image
-
-PLAYER_COLOR = "blue"
-REBORN_X = WIDTH / 2 - WALL.get_width() * 2
-REBORN_Y = HEIGHT - WALL.get_height()
-
-PLAYER_LASER = []
-PLAYER_BARRIER = []
-
-# Explosion
-EXPLOSION = []
-SMALL_EXPLOSION = []
 
 
 # Load Animation Image (PLAYER_LASER,  PLAYER_BARRIER, EXPLOSION)
@@ -205,21 +71,14 @@ def add_animation_sheet():
     EXPLOSION.append(pygame.image.load(os.path.join("images", "explo (25).png")).convert_alpha(Screen))
 
     # Small Explosion
-    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (1).png")).convert_alpha(Screen))
-    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (2).png")).convert_alpha(Screen))
-    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (3).png")).convert_alpha(Screen))
-    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (4).png")).convert_alpha(Screen))
-    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (5).png")).convert_alpha(Screen))
-    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (6).png")).convert_alpha(Screen))
-    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (7).png")).convert_alpha(Screen))
-    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (8).png")).convert_alpha(Screen))
-    # SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (9).png")).convert_alpha(Screen))
-    # SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (10).png")).convert_alpha(Screen))
-    # SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (11).png")).convert_alpha(Screen))
-    # SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (12).png")).convert_alpha(Screen))
-    # SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (13).png")).convert_alpha(Screen))
-    # SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (14).png")).convert_alpha(Screen))
-    # SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (15).png")).convert_alpha(Screen))
+    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (1).png")))
+    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (2).png")))
+    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (3).png")))
+    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (4).png")))
+    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (5).png")))
+    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (6).png")))
+    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (7).png")))
+    SMALL_EXPLOSION.append(pygame.image.load(os.path.join("images", "bullet_collide (8).png")))
 
     # Load Laser
     PLAYER_LASER.append(pygame.image.load(os.path.join("images", "laser1.png")))
@@ -258,8 +117,176 @@ def add_animation_sheet():
     PLAYER_BARRIER.append(pygame.image.load(os.path.join("images", "barrier (21).png")).convert_alpha(Screen))
     PLAYER_BARRIER.append(pygame.image.load(os.path.join("images", "barrier (22).png")).convert_alpha(Screen))
 
+    # Load Spam
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (1).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (2).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (3).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (4).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (5).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (6).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (7).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (8).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (9).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (10).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (11).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (12).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (13).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (14).png")).convert_alpha(Screen))
+    SPAM.append(pygame.image.load(os.path.join("images", "spam (15).png")).convert_alpha(Screen))
 
+
+######################################################### Tuy Chỉnh ########################################
+
+# Ability Animation
+PLAYER_LASER = []
+PLAYER_BARRIER = []
+# Explosion
+EXPLOSION = []
+SMALL_EXPLOSION = []
+# Spam Animation
+SPAM = []
+
+#  Bullet Type
+TYPE_BULLET = {}
+#  Tank Type
+TYPE_TANK = {}
+
+
+# Chỉnh thuộc tính của đạn
+def set_bullet():
+    RED_BULLET_VEL = 2
+    GREEN_BULLET_VEL = 3
+    GRAY_BULLET_VEL = 4
+    BLUE_BULLET_VEL = 4
+    TYPE_BULLET["red"] = {
+        "image": RED_BULLET,
+        "vel": RED_BULLET_VEL
+    }
+    TYPE_BULLET["green"] = {
+        "image": GREEN_BULLET,
+        "vel": GREEN_BULLET_VEL
+    }
+    TYPE_BULLET["gray"] = {
+        "image": GRAY_BULLET,
+        "vel": GRAY_BULLET_VEL
+    }
+    TYPE_BULLET["blue"] = {
+        "image": BLUE_BULLET,
+        "vel": BLUE_BULLET_VEL
+    }
+
+
+# Chỉnh thuộc tính xe tank
+def set_Tank_stats():
+    VEL_RED = 1
+    HEALTH_RED = 3
+
+    VEL_GREEN = 2
+    HEALTH_GREEN = 2
+
+    VEL_GRAY = 3
+    HEALTH_GRAY = 1
+
+    VEL_BLUE = 2.5
+    HEALTH_BLUE = 2
+    TYPE_TANK["red"] = {
+        "image": TANK_RED,
+        "vel": VEL_RED,
+        "health": HEALTH_RED
+    }
+    TYPE_TANK["green"] = {
+        "image": TANK_GREEN,
+        "vel": VEL_GREEN,
+        "health": HEALTH_GREEN
+    }
+    TYPE_TANK["gray"] = {
+        "image": TANK_GRAY,
+        "vel": VEL_GRAY,
+        "health": HEALTH_GRAY
+    }
+    TYPE_TANK["blue"] = {
+        "image": TANK_BLUE,
+        "vel": VEL_BLUE,
+        "health": HEALTH_BLUE
+    }
+
+
+# Thêm ảnh vào sheet
 add_animation_sheet()
+set_bullet()
+set_Tank_stats()
+
+######################################## Player ########################################################
+
+
+# Chose Player Color + Reborn Point
+PLAYER_COLOR = "blue"
+REBORN_X = WIDTH / 2 - WALL.get_width() * 2
+REBORN_Y = HEIGHT - WALL.get_height()
+
+# Enemy Color + Spam Time
+enemy_color = ["red", "green", "gray", "blue"]
+enemy_color.remove(PLAYER_COLOR)
+spam_enemy_time = 150 # Thời gian xuất hiện đợt tank địch mới
+
+
+######################################### Map Setup #################################################
+def draw_map():
+    map = ['.#..#.##.##.#..#.',
+           '.#..#.##@##.#..#.',
+           '.#..#.......#..#.',
+           '......##.##......',
+           '......##.##......',
+           '@.###G......###G@',
+           '.....G##.##..GGG.',
+           '......#####..GGG.',
+           '.#..#.#####.#..#.',
+           '.#..#.##.##.#..#.',
+           '.#..#.##.##.#..#.',
+           '.#..#..###..#..#.',
+           '.......#H#.......']
+
+    map1 = ['.#..@.##.#@.#..#.',
+            '.#..@.##@##.#..#.',
+            '.#..#.......#.@#.',
+            '......##.##.@....',
+            '......##.##......',
+            '@.###...@...###.@',
+            '......##.##......',
+            '...@..###@#......',
+            '@#.@#.#####.#..#.',
+            '.#..#.##.##.#..#.',
+            '.#..#.##.##.#..#.',
+            '.#..#..###..#..#.',
+            '.......#H#.......']
+
+    for row in range(13):  # 650/50=13
+        for col in range(len(map[row])):  # 850/50=17
+            if map[row][col] == '#':
+                wall = Building(WALL.get_width() * col + WALL.get_width() / 2,
+                                WALL.get_height() * row + WALL.get_width() / 2, WALL)
+                wall_group.add(wall)
+            elif map[row][col] == '@':
+                stone = Building(STEEL_WALL.get_width() * col + STEEL_WALL.get_width() / 2,
+                                 STEEL_WALL.get_height() * row + STEEL_WALL.get_width() / 2, STEEL_WALL)
+                steel_wall_group.add(stone)
+            elif map[row][col] == 'G':
+                grass = Building(GRASS.get_width() * col + WALL.get_width() / 2,
+                                 GRASS.get_height() * row + WALL.get_width() / 2, GRASS)
+                grass_group.add(grass)
+            elif map[row][col] == 'H':
+                base = Building(BASE.get_width() * col + WALL.get_width() / 2,
+                                BASE.get_height() * row + WALL.get_width() / 2, BASE)
+                base_group.add(base)
+
+    # print(len(map[0][1]))
+    for row in range(13):  # 850/50=17
+        for col in range(len(map[row])):
+            print(map[row][col], sep='', end='')
+        print()
+
+
+######################################## Class organize ##########################################
 
 
 # Tank Class
@@ -307,7 +334,6 @@ class Player(Tank):
         for group in groups:
             if pygame.sprite.spritecollide(self, group, False):
                 return True
-
         return False
 
     def move(self):
@@ -332,7 +358,7 @@ class Player(Tank):
         self.image = pygame.transform.rotate(TYPE_TANK[PLAYER_COLOR]["image"], self.direction)
 
         # Tank move out of screen
-        if self.collide([wall_group, steel_wall_group, enemy_group]):
+        if self.collide([wall_group, steel_wall_group, enemy_group, base_group]):
             self.rect.x = current_x
             self.rect.y = current_y
 
@@ -378,8 +404,8 @@ class Player(Tank):
         elif self.cool_down_counter > 0:
             self.cool_down_counter += 1
 
-    def open_barrier(self, time):
-        barrier = Barrier(self.rect.centerx, self.rect.centery, time)
+    def open_barrier(self, time = 60):
+        barrier = Barrier(time)
         player_barrier_group.add(barrier)
 
     def update(self):
@@ -442,7 +468,7 @@ class Enemy(Tank):
             self.rect.x += self.vel
 
         # không cho xe tank ra ngoài màn hình
-        if self.collide([wall_group, steel_wall_group, player_group]):
+        if self.collide([wall_group, steel_wall_group, player_group, base_group]):
             self.rect.x = current_x
             self.rect.y = current_y
             self.move_cool_down = 0
@@ -524,21 +550,21 @@ class Bullet(pygame.sprite.Sprite):
             global LIVES, player
             if not player.has_barrier:
                 explosion_group.add(Explosion(player.rect.centerx, player.rect.centery, EXPLOSION))
+                player_group.empty()
                 if LIVES > 1:
-                    player_group.remove(player)
-                    player = Player(REBORN_X, REBORN_Y)
-                    player_group.add(player)
-                    player.open_barrier(45)
+                    spam_group.add(Spam(REBORN_X, REBORN_Y, "player"))
                     pygame.sprite.spritecollide(player, enemy_group, True)
                 LIVES -= 1
             enemy_bullet_group.remove(self)
 
-        if pygame.sprite.spritecollide(self, wall_group, True):
-            explosion_group.add(Explosion(self.rect.centerx, self.rect.centery, SMALL_EXPLOSION))
-            if self in player_bullet_group:
-                player_bullet_group.remove(self)
-            else:
-                enemy_bullet_group.remove(self)
+        buildings = (wall_group, base_group)
+        for building in buildings:
+            if pygame.sprite.spritecollide(self, building, True):
+                explosion_group.add(Explosion(self.rect.centerx, self.rect.centery, SMALL_EXPLOSION))
+                if self in player_bullet_group:
+                    player_bullet_group.remove(self)
+                else:
+                    enemy_bullet_group.remove(self)
 
         if pygame.sprite.spritecollide(self, steel_wall_group, False):
             explosion_group.add(Explosion(self.rect.centerx, self.rect.centery, SMALL_EXPLOSION))
@@ -585,12 +611,8 @@ class Laser(pygame.sprite.Sprite):
             player_laser_group.remove(self)
             explosion_group.add(Explosion(player.rect.centerx, player.rect.centery, EXPLOSION))
             player_group.empty()
-            if LIVES > 1:
-                player = Player(REBORN_X, REBORN_Y)
-                player_group.add(player)
-                pygame.sprite.spritecollide(player, enemy_group, True)
-                player.open_barrier(45)
             LIVES -= 1
+            spam_group.add(Spam(REBORN_X, REBORN_Y, "player"))
         else:
             self.image = self.laser_sheet[int(self.current_image)]
 
@@ -599,7 +621,7 @@ class Laser(pygame.sprite.Sprite):
 class Barrier(pygame.sprite.Sprite):
     global player
 
-    def __init__(self, pos_x, pos_y, time):
+    def __init__(self, time):
         super().__init__()
         self.barrier_sheet = PLAYER_BARRIER
 
@@ -607,7 +629,7 @@ class Barrier(pygame.sprite.Sprite):
         self.image = self.barrier_sheet[self.current_images]
 
         self.rect = self.image.get_rect()
-        self.rect.center = [pos_x, pos_y]
+        self.rect.center = [player.rect.x, player.rect.y]
 
         self.time = time
         player.has_barrier = True
@@ -653,14 +675,59 @@ class Explosion(pygame.sprite.Sprite):
             self.image = self.explosion_sheet[self.current_images]
 
 
-# Wall Class
-class Wall(pygame.sprite.Sprite):
+# Spam Class - Class hiệu ứng lúc tank xuất hiện
+class Spam(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y, spam_tank="enemy", time = 200):
+        super().__init__()
+        self.spam_sheet = SPAM
+        self.spam_tank = spam_tank
+        self.spam_time = time  # Sprites Frame
+        self.current_images = 0
+        self.image = self.spam_sheet[self.current_images]
+
+        self.rect = self.image.get_rect()
+        self.rect.center = [pos_x, pos_y]
+
+    def update(self):
+        self.current_images += 1
+        if self.current_images >= self.spam_time:
+            global LIVES, Score, player, enemy_color
+            if self.spam_tank == "enemy":
+                color_random = random.choice(enemy_color)
+                enemy_random = Enemy(self.rect.centerx, self.rect.centery, color_random)
+                if pygame.sprite.spritecollide(enemy_random, enemy_group, True):
+                    explosion_group.add(Explosion(self.rect.centerx, self.rect.centery, EXPLOSION))
+                if pygame.sprite.spritecollide(enemy_random, player_group, True):
+                    explosion_group.add(Explosion(self.rect.centerx, self.rect.centery, EXPLOSION))
+                    LIVES -= 1
+                    if LIVES > 0:
+                        spam_group.add(Spam(REBORN_X, REBORN_Y, "player"))
+                enemy_group.add(enemy_random)
+            else:
+
+                if LIVES > 0:
+                    player = Player(self.rect.centerx, self.rect.centery)
+                    player_group.add(player)
+                    player.open_barrier()
+                    if pygame.sprite.spritecollide(player, enemy_group, True):
+                        explosion_group.add(Explosion(self.rect.centerx, self.rect.centery, EXPLOSION))
+                        Score += 1
+
+            spam_group.remove(self)
+        else:
+            self.image = self.spam_sheet[self.current_images % len(self.spam_sheet)]
+
+
+# Building Class
+class Building(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y, image):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.center = [pos_x, pos_y]
 
+
+######################################## Group + Level organize ##########################################
 
 # Generate Rule - Check Overlap
 def check_over_lap(object, groups):
@@ -670,54 +737,61 @@ def check_over_lap(object, groups):
     return True
 
 
-# Set Player
-player = Player(REBORN_X, REBORN_Y)
+# Group
 player_group = pygame.sprite.Group()
-player_group.add(player)
 player_bullet_group = pygame.sprite.Group()
 player_laser_group = pygame.sprite.Group()
 player_barrier_group = pygame.sprite.Group()
 
-# Set Main House
-hawk_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
+enemy_bullet_group = pygame.sprite.Group()
 
-# Set Wall
+base_group = pygame.sprite.Group()
 wall_group = pygame.sprite.Group()
+steel_wall_group = pygame.sprite.Group()
+grass_group = pygame.sprite.Group()
+
+explosion_group = pygame.sprite.Group()
+spam_group = pygame.sprite.Group()
+
+# Spam Player
+spam_group.add(Spam(REBORN_X,REBORN_Y,"player", 100))
+
+# Draw Wall
 # for i in range(30):
 #     wall = Wall(WALL.get_width() * random.randint(1, 16),
 #                 WALL.get_height() * random.randint(1, 12), WALL)
 #     if check_over_lap(wall, [wall_group, player_group]):
 #         wall_group.add(wall)
 
-# Set Steel Wall
-steel_wall_group = pygame.sprite.Group()
+# Draw Steel Wall
 # for i in range(30):
 #     wall = Wall(STEEL_WALL.get_width() * random.randint(1, 16),
 #                 STEEL_WALL.get_height() * random.randint(1, 12), STEEL_WALL)
 #     if check_over_lap(wall, [wall_group, steel_wall_group, player_group]):
 #         steel_wall_group.add(wall)
 
-# Set Grass
-grass_group = pygame.sprite.Group()
 
 # Draw Demo Level 1
 draw_map()
 
-# Set Enemy
-enemy_group = pygame.sprite.Group()
-color_random = ["red", "green", "gray", "blue"]
-color_random.remove(PLAYER_COLOR)
-for i in range(30):
-    color_chose = random.choice(color_random)
-    enemy = Enemy(TYPE_TANK[color_chose]["image"].get_width() * random.randint(1, 16),
-                  TYPE_TANK[color_chose]["image"].get_height() * random.randint(1, 12),
-                  color_chose)
-    if check_over_lap(enemy, [wall_group, enemy_group, steel_wall_group, player_group]):
-        enemy_group.add(enemy)
-enemy_bullet_group = pygame.sprite.Group()
 
-# Set Explosion
-explosion_group = pygame.sprite.Group()
+# Spam Enemy
+def spam_enemy():
+    for i in range(random.randint(1, 5)):
+        spam = Spam(WALL.get_width() * random.randint(1, 16), WALL.get_height() * random.randint(1, 12))
+        if check_over_lap(spam, [wall_group, enemy_group, steel_wall_group, player_group, base_group, spam_group]):
+            spam_group.add(spam)
+        else:
+            i -= 1
+
+
+# Game over
+
+def Game_over():
+    if LIVES <= 0 or len(base_group) == 0:
+        return True
+
 
 # Game run
 while True:
@@ -725,12 +799,15 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+    # if Game_over():
+    #     break
 
     pygame.display.flip()
     Screen.blit(BG, (0, 0))
 
     grass_group.draw(Screen)
-    hawk_group.draw(Screen)
+    base_group.draw(Screen)
+    base_group.update(Screen)
 
     wall_group.draw(Screen)
     steel_wall_group.draw(Screen)
@@ -751,6 +828,12 @@ while True:
 
     explosion_group.draw(Screen)
     explosion_group.update()
+
+    spam_group.draw(Screen)
+    spam_group.update()
+
+    if (start_time - pygame.time.get_ticks()) % spam_enemy_time == 0:
+        spam_enemy()
 
     main_font = pygame.font.SysFont("comicsans", 30)
     lives_label = main_font.render(f"Lives: {LIVES}", True, (255, 255, 255))
