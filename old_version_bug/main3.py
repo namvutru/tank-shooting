@@ -16,7 +16,7 @@ HEIGHT = 650
 Screen = pygame.display.set_mode((WIDTH, HEIGHT))
 start_time = pygame.time.get_ticks()
 # Text on Screen
-LIVES = 3
+LIVES = 1
 Score = 0
 
 ######################################################### Load Images ########################################
@@ -94,7 +94,7 @@ def add_animation_sheet():
     PLAYER_LASER.append(pygame.image.load(os.path.join("images", "laser12.png")))
 
     # Load Barrier
-    PLAYER_BARRIER.append(pygame.image.load(os.path.join("images", "barrier (1).png")).convert_alpha(Screen))
+    PLAYER_BARRIER.append(pygame.image.load(os.path.join("images", "return_img.png")).convert_alpha(Screen))
     PLAYER_BARRIER.append(pygame.image.load(os.path.join("images", "barrier (2).png")).convert_alpha(Screen))
     PLAYER_BARRIER.append(pygame.image.load(os.path.join("images", "barrier (3).png")).convert_alpha(Screen))
     PLAYER_BARRIER.append(pygame.image.load(os.path.join("images", "barrier (4).png")).convert_alpha(Screen))
@@ -230,6 +230,7 @@ enemy_color.remove(PLAYER_COLOR)
 spam_enemy_time = 150  # Thời gian xuất hiện đợt tank địch mới
 
 # ######################################## Map Setup #################################################
+
 MAP_GAME = {
     'map_level1': ['.#..#.##.##.#..#.',
                    '.@..#.##@##.#..#.',
@@ -261,7 +262,6 @@ MAP_GAME = {
 
 
 def draw_map(map):
-
     for row in range(13):  # 650/50=13
         for col in range(len(MAP_GAME[map][row])):  # 850/50=17
             if MAP_GAME[map][row][col] == '#':
@@ -280,6 +280,9 @@ def draw_map(map):
                 base = Building(BASE.get_width() * col + WALL.get_width() / 2,
                                 BASE.get_height() * row + WALL.get_width() / 2, BASE)
                 base_group.add(base)
+
+
+# ####################################### Class organize ##########################################
 
 
 # Tank Class
@@ -595,8 +598,6 @@ class Laser(pygame.sprite.Sprite):
             Score += 1
         pygame.sprite.spritecollide(self, wall_group, True)
         pygame.sprite.spritecollide(self, steel_wall_group, True)
-        pygame.sprite.spritecollide(self, spam_group, True)
-        pygame.sprite.spritecollide(self, base_group, True)
 
     def update(self):
         self.collide()
@@ -699,6 +700,7 @@ class Spam(pygame.sprite.Sprite):
                         spam_group.add(Spam(REBORN_X, REBORN_Y, "player"))
                 enemy_group.add(enemy_random)
             else:
+
                 if LIVES > 0:
                     player = Player(self.rect.centerx, self.rect.centery)
                     player_group.add(player)
@@ -751,7 +753,7 @@ class Button():
         return action
 
 
-######################################## Group + Level organize ##########################################
+# ####################################### Group + Level organize ##########################################
 
 # Generate Rule - Check Overlap
 def check_over_lap(object, groups):
@@ -782,19 +784,21 @@ spam_group = pygame.sprite.Group()
 spam_group.add(Spam(REBORN_X, REBORN_Y, "player", 100))
 
 
+# ---------------------------------------------------------Hàm tạo map-------------------------------------------------------------
+
 def draw_map_random():
     # Draw Wall
-    for i in range(50):
+    for i in range(30):
         wall = Building(WALL.get_width() * random.randint(1, 16) + 25,
                         WALL.get_height() * random.randint(1, 12) + 25, WALL)
-        if check_over_lap(wall, [wall_group, player_group, spam_group]):
+        if check_over_lap(wall, [wall_group, player_group]):
             wall_group.add(wall)
 
     # Draw Steel Wall
-    for i in range(20):
+    for i in range(30):
         wall = Building(STEEL_WALL.get_width() * random.randint(1, 16) + 25,
                         STEEL_WALL.get_height() * random.randint(1, 12) + 25, STEEL_WALL)
-        if check_over_lap(wall, [wall_group, steel_wall_group, player_group, spam_group]):
+        if check_over_lap(wall, [wall_group, steel_wall_group, player_group]):
             steel_wall_group.add(wall)
 
 
@@ -802,7 +806,7 @@ def draw_map_random():
 # Spam Enemy
 def spam_enemy():
     for i in range(random.randint(1, 5)):
-        spam = Spam(WALL.get_width() * random.randint(1, 16), WALL.get_height() * random.randint(1, 8))
+        spam = Spam(WALL.get_width() * random.randint(1, 16), WALL.get_height() * random.randint(1, 12))
         if check_over_lap(spam, [wall_group, enemy_group, steel_wall_group, player_group, base_group, spam_group]):
             spam_group.add(spam)
         else:
@@ -814,14 +818,6 @@ def spam_enemy():
 def Game_over():
     if LIVES <= 0 or len(base_group) == 0:
         return True
-    return False
-
-
-# Win
-def Win_game(win_score):
-    if Score >= win_score:
-        return True
-    return False
 
 
 # Game run
@@ -836,77 +832,7 @@ def main_rank():
                 pygame.quit()
                 sys.exit()
         if LIVES == 0:
-            screen_gameover()
-            return
-
-        pygame.display.flip()
-        Screen.blit(BG, (0, 0))
-
-        spam_group.draw(Screen)
-        spam_group.update()
-
-        grass_group.draw(Screen)
-        base_group.draw(Screen)
-        base_group.update(Screen)
-
-        player_laser_group.draw(Screen)
-        player_laser_group.update()
-        player_bullet_group.draw(Screen)
-        player_bullet_group.update()
-        player_group.draw(Screen)
-        player_group.update()
-        player_barrier_group.draw(Screen)
-        player_barrier_group.update()
-
-        wall_group.draw(Screen)
-        steel_wall_group.draw(Screen)
-
-        enemy_group.draw(Screen)
-        enemy_group.update()
-        enemy_bullet_group.draw(Screen)
-        enemy_bullet_group.update()
-
-        explosion_group.draw(Screen)
-        explosion_group.update()
-
-        if (start_time - pygame.time.get_ticks()) % spam_enemy_time == 0:
-            spam_enemy()
-
-        main_font = pygame.font.SysFont("comicsans", 25)
-        lives_label = main_font.render(f"Lives: {LIVES}", True, (255, 255, 255))
-        score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-        Screen.blit(lives_label, (10, 10))
-        Screen.blit(score_label, (10, 40))
-
-        clock.tick(60)
-
-
-# -------------
-
-
-def main_level(map_name):
-    if map_name == 'map_level1':
-        win_score = 10
-    elif map_name == 'map_level2':
-        win_score = 15
-    else:
-        win_score = 1000
-    draw_map(map_name)
-
-
-    global LIVES, Score
-    LIVES = 3
-    Score = 0
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-        if Game_over():
-            screen_gameover()
-            return
-        if Win_game(win_score):
-            screen_win()
+            screen_rank()
             return
 
         pygame.display.flip()
@@ -945,10 +871,67 @@ def main_level(map_name):
         main_font = pygame.font.SysFont("comicsans", 30)
         lives_label = main_font.render(f"Lives: {LIVES}", True, (255, 255, 255))
         score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-        win_score_label = main_font.render(f"Win Scores: {win_score}", True, (0, 255, 0))
         Screen.blit(lives_label, (10, 10))
         Screen.blit(score_label, (10, 40))
-        Screen.blit(win_score_label, (10, 70))
+
+        clock.tick(60)
+
+
+# -------------
+
+
+def main_level(map_name):
+    draw_map(map_name)
+    global LIVES, Score
+    LIVES = 3
+    Score = 0
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        if Game_over():
+            screen_gameover()
+            return
+
+        pygame.display.flip()
+        Screen.blit(BG, (0, 0))
+
+        grass_group.draw(Screen)
+        base_group.draw(Screen)
+        base_group.update(Screen)
+
+        wall_group.draw(Screen)
+        steel_wall_group.draw(Screen)
+
+        player_laser_group.draw(Screen)
+        player_laser_group.update()
+        player_bullet_group.draw(Screen)
+        player_bullet_group.update()
+        player_group.draw(Screen)
+        player_group.update()
+        player_barrier_group.draw(Screen)
+        player_barrier_group.update()
+
+        enemy_group.draw(Screen)
+        enemy_group.update()
+        enemy_bullet_group.draw(Screen)
+        enemy_bullet_group.update()
+
+        explosion_group.draw(Screen)
+        explosion_group.update()
+
+        spam_group.draw(Screen)
+        spam_group.update()
+
+        if (start_time - pygame.time.get_ticks()) % spam_enemy_time == 0:
+            spam_enemy()
+
+        main_font = pygame.font.SysFont("comicsans", 30)
+        lives_label = main_font.render(f"Lives: {LIVES}", True, (255, 255, 255))
+        score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
+        Screen.blit(lives_label, (10, 10))
+        Screen.blit(score_label, (10, 40))
 
         clock.tick(60)
 
@@ -976,6 +959,7 @@ def screen_chose():
         chose_screen = pygame.image.load('images/summer_rift.png')
         screen.blit(chose_screen, (0, 0))
 
+
         if button_level.draw(screen):
             click_sound.play()
             main_level('map_level1')
@@ -996,6 +980,7 @@ def screen_chose():
             main_rank()
             run = False
 
+
         # if close
         for event in pygame.event.get():
             # quit game
@@ -1007,42 +992,40 @@ def screen_chose():
 
 
 # màn hình tính điểm chơi rank
-# def screen_rank():
-#     screen.fill((0,0,0))
-#     img_gameover = pygame.image.load('images/gameover.png').convert_alpha()
-#     screen.blit(img_gameover, (50,0))  # cái này thay bằng ảnh nền khác cũng được
-#     main_font = pygame.font.SysFont("comicsans", 30)
-#     score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-#     Screen.blit(score_label, (350, 450))
-#
-#     img_return = pygame.image.load('images/return_img.png').convert_alpha()  # chọn ảnh return
-#     img_play_again = pygame.image.load('images/play_again.png').convert_alpha()
-#     button_return = Button(10, 10, img_return, 0.8)
-#     play_again = Button(WIDTH / 2 - 65, HEIGHT - 100, img_play_again, 0.3)  # ảnh chơi lại
-#
-#     run = True
-#
-#     while run:
-#         # Screen.blit(score_label, (WIDTH / 2 - 100, HEIGHT / 2 - 100))
-#
-#         if button_return.draw(screen):
-#             click_sound.play()
-#             main_menu()
-#             run = False
-#
-#         elif play_again.draw(screen):
-#             click_sound.play()
-#             main_rank()
-#             run = False
-#
-#         # if close
-#         for event in pygame.event.get():
-#             # quit game
-#             if event.type == pygame.QUIT:
-#                 pygame.quit()
-#                 sys.exit()
-#
-#         pygame.display.update()
+def screen_rank():
+    screen.fill((0, 0, 0))  # cái này thay bằng ảnh nền khác cũng được
+    main_font = pygame.font.SysFont("comicsans", 30)
+    score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
+
+    img_return = pygame.image.load('images/return_img.png').convert_alpha()  # chọn ảnh return
+    img_play_again = pygame.image.load('images/play_again.png').convert_alpha()
+    button_return = Button(10, 10, img_return, 0.8)
+    play_again = Button(WIDTH / 2 - 65, HEIGHT - 200, img_play_again, 0.3)  # ảnh chơi lại
+
+    run = True
+
+    while run:
+        # Screen.blit(score_label, (WIDTH / 2 - 100, HEIGHT / 2 - 100))
+
+        if button_return.draw(screen):
+            click_sound.play()
+            main_menu()
+            run = False
+
+        elif play_again.draw(screen):
+            click_sound.play()
+            main_rank()
+            run = False
+
+
+        # if close
+        for event in pygame.event.get():
+            # quit game
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        pygame.display.update()
 
 
 # âm thanh click button
@@ -1057,16 +1040,14 @@ def screen_gameover():
     img_return = pygame.image.load('images/return_img.png').convert_alpha()  # chọn ảnh return
     img_play_again = pygame.image.load('images/play_again.png').convert_alpha()
     button_return = Button(10, 10, img_return, 0.8)
-    play_again = Button(WIDTH / 2 - 65, HEIGHT - 100, img_play_again, 0.3)  # ảnh chơi lại
+    play_again = Button(WIDTH / 2 - 65, HEIGHT - 200, img_play_again, 0.3)  # ảnh chơi lại
 
     run = True
 
     while run:
         Screen.fill((0, 0, 0))
         Screen.blit(img_gameover, (50, 0))
-        main_font = pygame.font.SysFont("comicsans", 30)
-        score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-        Screen.blit(score_label, (350, 450))
+
         if button_return.draw(screen):
             click_sound.play()
             main_menu()
@@ -1076,6 +1057,7 @@ def screen_gameover():
             click_sound.play()
             main_level('map_level1')  # chọn chơi main_level nhưng chưa làm nên gọi main_rank() tạm
             run = False
+
 
         # if close
         for event in pygame.event.get():
@@ -1087,22 +1069,20 @@ def screen_gameover():
         pygame.display.update()
 
 
+
 def screen_win():
     gameover_sound = pygame.mixer.Sound('sounds/gameover.ogg')
     gameover_sound.play()  # nhạc win nếu chọn được thì oke không thì vứt
 
-    img_gamewin = pygame.image.load(
-        'images/image_win.png').convert_alpha()  # chưa chọn đc ảnh nếu cần chỉ in ra text chọn font chữ đậm là ok
+    imm_gamewin = pygame.image.load('images/image_win.png').convert_alpha()  # chưa chọn đc ảnh nếu cần chỉ in ra text chọn font chữ đậm là ok
     img_return = pygame.image.load('images/return_img.png').convert_alpha()  # chọn ảnh return
     button_return = Button(10, 10, img_return, 0.8)
 
     run = True
 
     while run:
-        Screen.blit(img_gamewin, (0, 0))  # back_ground chưa có nếu
-        main_font = pygame.font.SysFont("comicsans", 30)
-        score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-        Screen.blit(score_label, (350, 450))
+        Screen.blit(imm_gamewin, (50,50))
+
         if button_return.draw(screen):
             click_sound.play()
             run = False
@@ -1151,8 +1131,10 @@ def main_menu():
             screen_chose()
             run = False
 
+
         if exit_button.draw(screen):
             click_sound.play()
+            run = False
             pygame.quit()
             sys.exit()
 

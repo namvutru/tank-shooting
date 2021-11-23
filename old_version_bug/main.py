@@ -1,8 +1,8 @@
-import os
-import random
 import sys
 
 import pygame
+import os
+import random
 
 # General Setup
 pygame.font.init()
@@ -227,59 +227,66 @@ REBORN_Y = HEIGHT - WALL.get_height()
 # Enemy Color + Spam Time
 enemy_color = ["red", "green", "gray", "blue"]
 enemy_color.remove(PLAYER_COLOR)
-spam_enemy_time = 150  # Thời gian xuất hiện đợt tank địch mới
-
-# ######################################## Map Setup #################################################
-MAP_GAME = {
-    'map_level1': ['.#..#.##.##.#..#.',
-                   '.@..#.##@##.#..#.',
-                   '.@@.#.......#..#.',
-                   '......##.##.@....',
-                   '......##.##......',
-                   '@.###.......###G@',
-                   '.....G##.##..@...',
-                   '......#####......',
-                   '.#.@#.##@##.#..#.',
-                   '.#.@#.##.##.#..#.',
-                   '.#..#.##.##.#..#.',
-                   '.@..#..###..#..#.',
-                   '....@..#H#..@....'],
-    'map_level2': ['.#..@.##.#@.#..#.',
-                   '.#..@.##@##.#..#.',
-                   '.#..#.......#.@#.',
-                   '......##.##.@....',
-                   '......##.##......',
-                   '@.###...@...###.@',
-                   '......##.##......',
-                   '...@..###@#......',
-                   '@#.@#.#####.#..#.',
-                   '.#..#.##@##.#..#.',
-                   '@@..#.##.##.#..#.',
-                   '.#@.#..###..#..#.',
-                   '@...@..#H#..@....']
-}
+spam_enemy_time = 150 # Thời gian xuất hiện đợt tank địch mới
 
 
-def draw_map(map):
+######################################### Map Setup #################################################
+def draw_map():
+    map = ['.#..#.##.##.#..#.',
+           '.#..#.##@##.#..#.',
+           '.#..#.......#..#.',
+           '......##.##......',
+           '......##.##......',
+           '@.###G......###G@',
+           '.....G##.##..GGG.',
+           '......#####..GGG.',
+           '.#..#.#####.#..#.',
+           '.#..#.##.##.#..#.',
+           '.#..#.##.##.#..#.',
+           '.#..#..###..#..#.',
+           '.......#H#.......']
+
+    map1 = ['.#..@.##.#@.#..#.',
+            '.#..@.##@##.#..#.',
+            '.#..#.......#.@#.',
+            '......##.##.@....',
+            '......##.##......',
+            '@.###...@...###.@',
+            '......##.##......',
+            '...@..###@#......',
+            '@#.@#.#####.#..#.',
+            '.#..#.##.##.#..#.',
+            '.#..#.##.##.#..#.',
+            '.#..#..###..#..#.',
+            '.......#H#.......']
 
     for row in range(13):  # 650/50=13
-        for col in range(len(MAP_GAME[map][row])):  # 850/50=17
-            if MAP_GAME[map][row][col] == '#':
+        for col in range(len(map[row])):  # 850/50=17
+            if map[row][col] == '#':
                 wall = Building(WALL.get_width() * col + WALL.get_width() / 2,
                                 WALL.get_height() * row + WALL.get_width() / 2, WALL)
                 wall_group.add(wall)
-            elif MAP_GAME[map][row][col] == '@':
+            elif map[row][col] == '@':
                 stone = Building(STEEL_WALL.get_width() * col + STEEL_WALL.get_width() / 2,
                                  STEEL_WALL.get_height() * row + STEEL_WALL.get_width() / 2, STEEL_WALL)
                 steel_wall_group.add(stone)
-            elif MAP_GAME[map][row][col] == 'G':
+            elif map[row][col] == 'G':
                 grass = Building(GRASS.get_width() * col + WALL.get_width() / 2,
                                  GRASS.get_height() * row + WALL.get_width() / 2, GRASS)
                 grass_group.add(grass)
-            elif MAP_GAME[map][row][col] == 'H':
+            elif map[row][col] == 'H':
                 base = Building(BASE.get_width() * col + WALL.get_width() / 2,
                                 BASE.get_height() * row + WALL.get_width() / 2, BASE)
                 base_group.add(base)
+
+    # print(len(map[0][1]))
+    for row in range(13):  # 850/50=17
+        for col in range(len(map[row])):
+            print(map[row][col], sep='', end='')
+        print()
+
+
+######################################## Class organize ##########################################
 
 
 # Tank Class
@@ -397,7 +404,7 @@ class Player(Tank):
         elif self.cool_down_counter > 0:
             self.cool_down_counter += 1
 
-    def open_barrier(self, time=60):
+    def open_barrier(self, time = 60):
         barrier = Barrier(time)
         player_barrier_group.add(barrier)
 
@@ -595,8 +602,6 @@ class Laser(pygame.sprite.Sprite):
             Score += 1
         pygame.sprite.spritecollide(self, wall_group, True)
         pygame.sprite.spritecollide(self, steel_wall_group, True)
-        pygame.sprite.spritecollide(self, spam_group, True)
-        pygame.sprite.spritecollide(self, base_group, True)
 
     def update(self):
         self.collide()
@@ -672,7 +677,7 @@ class Explosion(pygame.sprite.Sprite):
 
 # Spam Class - Class hiệu ứng lúc tank xuất hiện
 class Spam(pygame.sprite.Sprite):
-    def __init__(self, pos_x, pos_y, spam_tank="enemy", time=200):
+    def __init__(self, pos_x, pos_y, spam_tank="enemy", time = 200):
         super().__init__()
         self.spam_sheet = SPAM
         self.spam_tank = spam_tank
@@ -699,6 +704,7 @@ class Spam(pygame.sprite.Sprite):
                         spam_group.add(Spam(REBORN_X, REBORN_Y, "player"))
                 enemy_group.add(enemy_random)
             else:
+
                 if LIVES > 0:
                     player = Player(self.rect.centerx, self.rect.centery)
                     player_group.add(player)
@@ -719,36 +725,6 @@ class Building(pygame.sprite.Sprite):
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.center = [pos_x, pos_y]
-
-
-# Button Class
-class Button():
-    def __init__(self, x, y, image, scale):
-        width = image.get_width()
-        height = image.get_height()
-        self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
-        self.clicked = False
-
-    def draw(self, surface):
-        action = False
-        # get mouse position
-        pos = pygame.mouse.get_pos()
-
-        # check mouseover and clicked conditions
-        if self.rect.collidepoint(pos):
-            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
-                self.clicked = True
-                action = True
-
-        if pygame.mouse.get_pressed()[0] == 0:
-            self.clicked = False
-
-        # draw button on screen
-        surface.blit(self.image, (self.rect.x, self.rect.y))
-
-        return action
 
 
 ######################################## Group + Level organize ##########################################
@@ -779,30 +755,31 @@ explosion_group = pygame.sprite.Group()
 spam_group = pygame.sprite.Group()
 
 # Spam Player
-spam_group.add(Spam(REBORN_X, REBORN_Y, "player", 100))
+spam_group.add(Spam(REBORN_X,REBORN_Y,"player", 100))
+
+# Draw Wall
+# for i in range(30):
+#     wall = Wall(WALL.get_width() * random.randint(1, 16),
+#                 WALL.get_height() * random.randint(1, 12), WALL)
+#     if check_over_lap(wall, [wall_group, player_group]):
+#         wall_group.add(wall)
+
+# Draw Steel Wall
+# for i in range(30):
+#     wall = Wall(STEEL_WALL.get_width() * random.randint(1, 16),
+#                 STEEL_WALL.get_height() * random.randint(1, 12), STEEL_WALL)
+#     if check_over_lap(wall, [wall_group, steel_wall_group, player_group]):
+#         steel_wall_group.add(wall)
 
 
-def draw_map_random():
-    # Draw Wall
-    for i in range(50):
-        wall = Building(WALL.get_width() * random.randint(1, 16) + 25,
-                        WALL.get_height() * random.randint(1, 12) + 25, WALL)
-        if check_over_lap(wall, [wall_group, player_group, spam_group]):
-            wall_group.add(wall)
-
-    # Draw Steel Wall
-    for i in range(20):
-        wall = Building(STEEL_WALL.get_width() * random.randint(1, 16) + 25,
-                        STEEL_WALL.get_height() * random.randint(1, 12) + 25, STEEL_WALL)
-        if check_over_lap(wall, [wall_group, steel_wall_group, player_group, spam_group]):
-            steel_wall_group.add(wall)
+# Draw Demo Level 1
+draw_map()
 
 
-# --------------------------------------------------------------------------------------------------------------------------------------------
 # Spam Enemy
 def spam_enemy():
     for i in range(random.randint(1, 5)):
-        spam = Spam(WALL.get_width() * random.randint(1, 16), WALL.get_height() * random.randint(1, 8))
+        spam = Spam(WALL.get_width() * random.randint(1, 16), WALL.get_height() * random.randint(1, 12))
         if check_over_lap(spam, [wall_group, enemy_group, steel_wall_group, player_group, base_group, spam_group]):
             spam_group.add(spam)
         else:
@@ -814,358 +791,53 @@ def spam_enemy():
 def Game_over():
     if LIVES <= 0 or len(base_group) == 0:
         return True
-    return False
-
-
-# Win
-def Win_game(win_score):
-    if Score >= win_score:
-        return True
-    return False
 
 
 # Game run
-def main_rank():
-    draw_map_random()
-    global LIVES, Score
-    LIVES = 3
-    Score = 0
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-        if LIVES == 0:
-            screen_gameover()
-            return
-
-        pygame.display.flip()
-        Screen.blit(BG, (0, 0))
-
-        spam_group.draw(Screen)
-        spam_group.update()
-
-        grass_group.draw(Screen)
-        base_group.draw(Screen)
-        base_group.update(Screen)
-
-        player_laser_group.draw(Screen)
-        player_laser_group.update()
-        player_bullet_group.draw(Screen)
-        player_bullet_group.update()
-        player_group.draw(Screen)
-        player_group.update()
-        player_barrier_group.draw(Screen)
-        player_barrier_group.update()
-
-        wall_group.draw(Screen)
-        steel_wall_group.draw(Screen)
-
-        enemy_group.draw(Screen)
-        enemy_group.update()
-        enemy_bullet_group.draw(Screen)
-        enemy_bullet_group.update()
-
-        explosion_group.draw(Screen)
-        explosion_group.update()
-
-        if (start_time - pygame.time.get_ticks()) % spam_enemy_time == 0:
-            spam_enemy()
-
-        main_font = pygame.font.SysFont("comicsans", 25)
-        lives_label = main_font.render(f"Lives: {LIVES}", True, (255, 255, 255))
-        score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-        Screen.blit(lives_label, (10, 10))
-        Screen.blit(score_label, (10, 40))
-
-        clock.tick(60)
-
-
-# -------------
-
-
-def main_level(map_name):
-    if map_name == 'map_level1':
-        win_score = 10
-    elif map_name == 'map_level2':
-        win_score = 15
-    else:
-        win_score = 1000
-    draw_map(map_name)
-
-
-    global LIVES, Score
-    LIVES = 3
-    Score = 0
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-        if Game_over():
-            screen_gameover()
-            return
-        if Win_game(win_score):
-            screen_win()
-            return
-
-        pygame.display.flip()
-        Screen.blit(BG, (0, 0))
-
-        grass_group.draw(Screen)
-        base_group.draw(Screen)
-        base_group.update(Screen)
-
-        wall_group.draw(Screen)
-        steel_wall_group.draw(Screen)
-
-        player_laser_group.draw(Screen)
-        player_laser_group.update()
-        player_bullet_group.draw(Screen)
-        player_bullet_group.update()
-        player_group.draw(Screen)
-        player_group.update()
-        player_barrier_group.draw(Screen)
-        player_barrier_group.update()
-
-        enemy_group.draw(Screen)
-        enemy_group.update()
-        enemy_bullet_group.draw(Screen)
-        enemy_bullet_group.update()
-
-        explosion_group.draw(Screen)
-        explosion_group.update()
-
-        spam_group.draw(Screen)
-        spam_group.update()
-
-        if (start_time - pygame.time.get_ticks()) % spam_enemy_time == 0:
-            spam_enemy()
-
-        main_font = pygame.font.SysFont("comicsans", 30)
-        lives_label = main_font.render(f"Lives: {LIVES}", True, (255, 255, 255))
-        score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-        win_score_label = main_font.render(f"Win Scores: {win_score}", True, (0, 255, 0))
-        Screen.blit(lives_label, (10, 10))
-        Screen.blit(score_label, (10, 40))
-        Screen.blit(win_score_label, (10, 70))
-
-        clock.tick(60)
-
-
-# -------------
-
-
-def screen_chose():
-    screen.fill((0, 0, 0))
-
-    level_img = pygame.image.load('images/level_img.png').convert_alpha()
-    level2_img = pygame.image.load('images/level2_img.png').convert_alpha()
-    rank_img = pygame.image.load('images/rank_img.png').convert_alpha()
-    img_return = pygame.image.load('images/return_img.png').convert_alpha()  # chọn ảnh return
-
-    # tạo button
-    button_return = Button(10, 10, img_return, 0.8)
-    button_level = Button(100, 250, level_img, 0.8)
-    button_level2 = Button(300, 200, level2_img, 0.8)
-    button_rank = Button(600, 150, rank_img, 0.8)
-    run = True
-
-    while run:
-        Screen.fill((0, 255, 0))
-        chose_screen = pygame.image.load('images/summer_rift.png')
-        screen.blit(chose_screen, (0, 0))
-
-        if button_level.draw(screen):
-            click_sound.play()
-            main_level('map_level1')
-            run = False
-
-        if button_level2.draw(screen):
-            click_sound.play()
-            main_level('map_level2')
-            run = False
-
-        if button_return.draw(screen):
-            click_sound.play()
-            main_menu()
-            run = False
-
-        if button_rank.draw(screen):
-            click_sound.play()
-            main_rank()
-            run = False
-
-        # if close
-        for event in pygame.event.get():
-            # quit game
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-        pygame.display.update()
-
-
-# màn hình tính điểm chơi rank
-# def screen_rank():
-#     screen.fill((0,0,0))
-#     img_gameover = pygame.image.load('images/gameover.png').convert_alpha()
-#     screen.blit(img_gameover, (50,0))  # cái này thay bằng ảnh nền khác cũng được
-#     main_font = pygame.font.SysFont("comicsans", 30)
-#     score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-#     Screen.blit(score_label, (350, 450))
-#
-#     img_return = pygame.image.load('images/return_img.png').convert_alpha()  # chọn ảnh return
-#     img_play_again = pygame.image.load('images/play_again.png').convert_alpha()
-#     button_return = Button(10, 10, img_return, 0.8)
-#     play_again = Button(WIDTH / 2 - 65, HEIGHT - 100, img_play_again, 0.3)  # ảnh chơi lại
-#
-#     run = True
-#
-#     while run:
-#         # Screen.blit(score_label, (WIDTH / 2 - 100, HEIGHT / 2 - 100))
-#
-#         if button_return.draw(screen):
-#             click_sound.play()
-#             main_menu()
-#             run = False
-#
-#         elif play_again.draw(screen):
-#             click_sound.play()
-#             main_rank()
-#             run = False
-#
-#         # if close
-#         for event in pygame.event.get():
-#             # quit game
-#             if event.type == pygame.QUIT:
-#                 pygame.quit()
-#                 sys.exit()
-#
-#         pygame.display.update()
-
-
-# âm thanh click button
-click_sound = pygame.mixer.Sound('sounds/steel.ogg')
-
-
-# gọi khi kết thúc thua main_level()
-def screen_gameover():
-    gameover_sound = pygame.mixer.Sound('sounds/gameover.ogg')
-    gameover_sound.play()
-    img_gameover = pygame.image.load('images/gameover.png').convert_alpha()
-    img_return = pygame.image.load('images/return_img.png').convert_alpha()  # chọn ảnh return
-    img_play_again = pygame.image.load('images/play_again.png').convert_alpha()
-    button_return = Button(10, 10, img_return, 0.8)
-    play_again = Button(WIDTH / 2 - 65, HEIGHT - 100, img_play_again, 0.3)  # ảnh chơi lại
-
-    run = True
-
-    while run:
-        Screen.fill((0, 0, 0))
-        Screen.blit(img_gameover, (50, 0))
-        main_font = pygame.font.SysFont("comicsans", 30)
-        score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-        Screen.blit(score_label, (350, 450))
-        if button_return.draw(screen):
-            click_sound.play()
-            main_menu()
-            run = False
-
-        elif play_again.draw(screen):
-            click_sound.play()
-            main_level('map_level1')  # chọn chơi main_level nhưng chưa làm nên gọi main_rank() tạm
-            run = False
-
-        # if close
-        for event in pygame.event.get():
-            # quit game
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-        pygame.display.update()
-
-
-def screen_win():
-    gameover_sound = pygame.mixer.Sound('sounds/gameover.ogg')
-    gameover_sound.play()  # nhạc win nếu chọn được thì oke không thì vứt
-
-    img_gamewin = pygame.image.load(
-        'images/image_win.png').convert_alpha()  # chưa chọn đc ảnh nếu cần chỉ in ra text chọn font chữ đậm là ok
-    img_return = pygame.image.load('images/return_img.png').convert_alpha()  # chọn ảnh return
-    button_return = Button(10, 10, img_return, 0.8)
-
-    run = True
-
-    while run:
-        Screen.blit(img_gamewin, (0, 0))  # back_ground chưa có nếu
-        main_font = pygame.font.SysFont("comicsans", 30)
-        score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
-        Screen.blit(score_label, (350, 450))
-        if button_return.draw(screen):
-            click_sound.play()
-            run = False
-            main_menu()
-
-        # if close
-        for event in pygame.event.get():
-            # quit game
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-        pygame.display.update()
-
-
-# ------------
-
-SCREEN_WIDTH = 850
-SCREEN_HEIGHT = 650
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-
-def main_menu():
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption('Tank-shooting')
-
-    start_img = pygame.image.load('images/play.png').convert_alpha()
-    exit_img = pygame.image.load('images/exit.png').convert_alpha()
-
-    # tạo button
-    size_button = 0.8
-    start_button = Button(100, 200, start_img, size_button)
-    exit_button = Button(500, 200, exit_img, size_button)
-
-    # game !stop
-    run = True
-
-    while run:
-        pygame.display.flip()
-        opening_background = pygame.image.load('images/opening_background.png')
-        screen.blit(opening_background, (0, 0))
-        caption = pygame.image.load('images/game_name.png')
-        screen.blit(caption, (175, 50))
-        if start_button.draw(screen):
-            click_sound.play()
-            screen_chose()
-            run = False
-
-        if exit_button.draw(screen):
-            click_sound.play()
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+    # if Game_over():
+    #     break
 
-        # if close
-        for event in pygame.event.get():
-            # quit game
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+    pygame.display.flip()
+    Screen.blit(BG, (0, 0))
+    grass_group.draw(Screen)
+    base_group.draw(Screen)
+    base_group.update(Screen)
 
-        pygame.display.update()
+    wall_group.draw(Screen)
+    steel_wall_group.draw(Screen)
 
+    player_laser_group.draw(Screen)
+    player_laser_group.update()
+    player_bullet_group.draw(Screen)
+    player_bullet_group.update()
+    player_group.draw(Screen)
+    player_group.update()
+    player_barrier_group.draw(Screen)
+    player_barrier_group.update()
 
-main_menu()
-pygame.quit()
-# -------------
+    enemy_group.draw(Screen)
+    enemy_group.update()
+    enemy_bullet_group.draw(Screen)
+    enemy_bullet_group.update()
+
+    explosion_group.draw(Screen)
+    explosion_group.update()
+
+    spam_group.draw(Screen)
+    spam_group.update()
+
+    if (start_time - pygame.time.get_ticks()) % spam_enemy_time == 0:
+        spam_enemy()
+
+    main_font = pygame.font.SysFont("comicsans", 30)
+    score_label = main_font.render(f"Scores: {Score}", True, (255, 255, 255))
+    Screen.blit(score_label, (10, 40))
+    Screen.blit(lives_label, (10, 10))
+    lives_label = main_font.render(f"Lives: {LIVES}", True, (255, 255, 255))
+
+    clock.tick(60)
