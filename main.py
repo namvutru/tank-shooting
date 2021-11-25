@@ -966,9 +966,9 @@ def screen_chose():
 
     # tạo button
     button_return = Button(10, 10, img_return, 0.8)
-    button_level = Button(100, 250, level_img, 0.8)
-    button_level2 = Button(300, 200, level2_img, 0.8)
-    button_rank = Button(600, 150, rank_img, 0.8)
+    button_level = Button(150, 215, level_img, 0.8)
+    button_level2 = Button(360, 215, level2_img, 0.8)
+    button_rank = Button(570, 215, rank_img, 0.8)
     run = True
 
     while run:
@@ -1134,8 +1134,8 @@ def main_menu():
 
     # tạo button
     size_button = 0.8
-    start_button = Button(100, 200, start_img, size_button)
-    exit_button = Button(500, 200, exit_img, size_button)
+    start_button = Button(100, 150, start_img, size_button)
+    exit_button = Button(500, 150, exit_img, size_button)
 
     # game !stop
     run = True
