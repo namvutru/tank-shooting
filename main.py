@@ -259,9 +259,10 @@ MAP_GAME = {
                    '@...@..#H#..@....']
 }
 
+current_level = ""
 
 def draw_map(map):
-
+    spam_group.add(Spam(REBORN_X, REBORN_Y, "player", 100))
     for row in range(13):  # 650/50=13
         for col in range(len(MAP_GAME[map][row])):  # 850/50=17
             if MAP_GAME[map][row][col] == '#':
@@ -545,7 +546,7 @@ class Bullet(pygame.sprite.Sprite):
                 explosion_group.add(Explosion(player.rect.centerx, player.rect.centery, EXPLOSION))
                 player_group.empty()
                 if LIVES > 1:
-                    spam_group.add(Spam(REBORN_X, REBORN_Y, "player"))
+                    spam_group.add(Spam(REBORN_X, REBORN_Y, "player",100))
                     pygame.sprite.spritecollide(player, enemy_group, True)
                 LIVES -= 1
             enemy_bullet_group.remove(self)
@@ -607,7 +608,7 @@ class Laser(pygame.sprite.Sprite):
             explosion_group.add(Explosion(player.rect.centerx, player.rect.centery, EXPLOSION))
             player_group.empty()
             LIVES -= 1
-            spam_group.add(Spam(REBORN_X, REBORN_Y, "player"))
+            spam_group.add(Spam(REBORN_X, REBORN_Y, "player",100))
         else:
             self.image = self.laser_sheet[int(self.current_image)]
 
@@ -696,7 +697,7 @@ class Spam(pygame.sprite.Sprite):
                     explosion_group.add(Explosion(self.rect.centerx, self.rect.centery, EXPLOSION))
                     LIVES -= 1
                     if LIVES > 0:
-                        spam_group.add(Spam(REBORN_X, REBORN_Y, "player"))
+                        spam_group.add(Spam(REBORN_X, REBORN_Y, "player",100))
                 enemy_group.add(enemy_random)
             else:
                 if LIVES > 0:
@@ -779,10 +780,10 @@ explosion_group = pygame.sprite.Group()
 spam_group = pygame.sprite.Group()
 
 # Spam Player
-spam_group.add(Spam(REBORN_X, REBORN_Y, "player", 100))
 
 
 def draw_map_random():
+    spam_group.add(Spam(REBORN_X, REBORN_Y, "player", 100))
     # Draw Wall
     for i in range(50):
         wall = Building(WALL.get_width() * random.randint(1, 16) + 25,
@@ -791,7 +792,7 @@ def draw_map_random():
             wall_group.add(wall)
 
     # Draw Steel Wall
-    for i in range(20):
+    for i in range(25):
         wall = Building(STEEL_WALL.get_width() * random.randint(1, 16) + 25,
                         STEEL_WALL.get_height() * random.randint(1, 12) + 25, STEEL_WALL)
         if check_over_lap(wall, [wall_group, steel_wall_group, player_group, spam_group]):
@@ -808,11 +809,20 @@ def spam_enemy():
         else:
             i -= 1
 
+def remove_all_group():
+    groups = [enemy_bullet_group,player_bullet_group,player_group,
+              enemy_group,wall_group,steel_wall_group,spam_group,
+              base_group, grass_group,explosion_group,
+              player_barrier_group,player_laser_group]
+    for group in groups:
+        group.empty()
 
 # Game over
 
 def Game_over():
     if LIVES <= 0 or len(base_group) == 0:
+        remove_all_group()
+
         return True
     return False
 
@@ -820,6 +830,7 @@ def Game_over():
 # Win
 def Win_game(win_score):
     if Score >= win_score:
+        remove_all_group()
         return True
     return False
 
@@ -836,6 +847,7 @@ def main_rank():
                 pygame.quit()
                 sys.exit()
         if LIVES == 0:
+            remove_all_group()
             screen_gameover()
             return
 
@@ -975,14 +987,16 @@ def screen_chose():
         Screen.fill((0, 255, 0))
         chose_screen = pygame.image.load('images/summer_rift.png')
         screen.blit(chose_screen, (0, 0))
-
+        global current_level
         if button_level.draw(screen):
             click_sound.play()
+            current_level = 'map_level1'
             main_level('map_level1')
             run = False
 
         if button_level2.draw(screen):
             click_sound.play()
+            current_level = 'map_level2'
             main_level('map_level2')
             run = False
 
@@ -993,6 +1007,7 @@ def screen_chose():
 
         if button_rank.draw(screen):
             click_sound.play()
+            current_level = "rank"
             main_rank()
             run = False
 
@@ -1062,6 +1077,8 @@ def screen_gameover():
     run = True
 
     while run:
+
+
         Screen.fill((0, 0, 0))
         Screen.blit(img_gameover, (50, 0))
         main_font = pygame.font.SysFont("comicsans", 30)
@@ -1074,7 +1091,10 @@ def screen_gameover():
 
         elif play_again.draw(screen):
             click_sound.play()
-            main_level('map_level1')  # chọn chơi main_level nhưng chưa làm nên gọi main_rank() tạm
+            if current_level == "rank":
+                main_rank()
+            else:
+                main_level(current_level)  # chọn chơi main_level nhưng chưa làm nên gọi main_rank() tạm
             run = False
 
         # if close
